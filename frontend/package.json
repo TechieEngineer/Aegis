@@ -10,7 +10,7 @@
     "test:crypto": "node --test tests/crypto.test.cjs"
   },
   "dependencies": {
-    "next": "15.5.x",
+    "next": "16.4.x",
     "react": "19.1.x",
     "react-dom": "19.1.x",
     "lucide-react": "^0.468.0",
