@@ -1,0 +1,20 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const ts = require('typescript');
+const source=fs.readFileSync(path.join(__dirname,'../components/crypto.ts'),'utf8');
+const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const moduleURL='data:text/javascript;base64,'+Buffer.from(compiled).toString('base64');
+test('AES-256-GCM roundtrip, Unicode, unique key/IV and tamper rejection',async()=>{
+ const {encryptSecret,decryptSecret,decode64,encode64}=await import(moduleURL);
+ const input='Aegis local test — नमस्ते';
+ const first=await encryptSecret(input),second=await encryptSecret(input);
+ assert.equal(decode64(first.key).length,32);assert.equal(decode64(first.iv).length,12);
+ assert.notEqual(first.key,second.key);assert.notEqual(first.iv,second.iv);
+ assert.equal(await decryptSecret(first.key,first.iv,first.ciphertext),input);
+ const bytes=decode64(first.ciphertext);bytes[0]^=1;
+ await assert.rejects(decryptSecret(first.key,first.iv,encode64(bytes)));
+ await assert.rejects(decryptSecret(second.key,first.iv,first.ciphertext));
+ await assert.rejects(encryptSecret(''));
+});

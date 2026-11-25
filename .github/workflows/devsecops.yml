@@ -1,0 +1,76 @@
+name: DevSecOps
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.x'
+          cache: false
+      - name: Test and vet
+        working-directory: backend
+        run: |
+          go mod tidy
+          go test -race ./...
+          go vet ./...
+          go build ./...
+      - name: Go vulnerability gate
+        working-directory: backend
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" ./...
+      - name: gosec static analysis (report for triage)
+        working-directory: backend
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          "$(go env GOPATH)/bin/gosec" -no-fail ./...
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - working-directory: frontend
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npm run test:crypto
+          npm run typecheck
+          npm run build
+          npm audit --omit=dev --audit-level=high
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create disposable configuration
+        shell: bash
+        run: |
+          umask 077
+          {
+            echo 'ADMIN_EMAIL=admin@aegis.local'
+            echo "ADMIN_PASSWORD=$(openssl rand -hex 24)"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)"
+            echo "REDIS_PASSWORD=$(openssl rand -hex 32)"
+            echo "JWT_SECRET=$(openssl rand -hex 32)"
+            echo "MFA_SECRET=$(openssl rand -hex 32)"
+            echo 'PUBLIC_ORIGIN=http://localhost:3000'
+            echo 'RECON_ALLOWED_HOSTS='
+          } > .env
+      - name: Validate Compose and build
+        run: |
+          docker compose config --quiet
+          docker compose up --build --wait --wait-timeout 180
+      - name: Local integration suite
+        run: python3 scripts/attack_sim.py
+      - name: Diagnostic logs on failure
+        if: failure()
+        run: docker compose logs --tail=80
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
