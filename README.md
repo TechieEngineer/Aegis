@@ -194,3 +194,14 @@ Future releases will focus on integration testing, dependency
 verification, performance benchmarking and security hardening.
 
 Do not use this version in production environments.
+
+## Interactive Preview
+
+[![Live Demo](https://img.shields.io/badge/Interactive-Preview-ff4fa3?style=for-the-badge)](https://TechieEngineer.github.io/Aegis-Preview/)
+
+Explore the Aegis dashboard without installing Docker or running a backend.
+
+The preview uses fictional data and simulated security workflows.
+
+[Preview Repository](https://github.com/TechieEngineer/Aegis-Preview)
+
