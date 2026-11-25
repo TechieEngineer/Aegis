@@ -1,3 +1,15 @@
 # Aegis continuation handover
 
 Aegis is a local-only security engineering reference monorepo: Go/chi API with Postgres migrations, Redis Lua limits and rotating token families, optional encrypted TOTP, owner-scoped asynchronous approved-host recon (offline demo default), SSE, and Redis GETDEL vault. Next.js App Router handles browser AES-256-GCM and SOC UI. Caddy binds loopback and forwards API traffic; app/database ports are not published. Run `scripts/setup.ps1`, `scripts/lock.ps1`, `docker compose up --build -d`, and `py -3 scripts/attack_sim.py` from the root. Use README and SECURITY.md as source-of-truth. The initial archive was not full-stack build-verified because registry access and Docker were unavailable. First inspect the current Git tree, CI results, dependency lockfiles and failing tests; fix and commit each validated change. Do not call it production-ready. Future work: dependency hardening, MFA recovery, session concurrency, security audit, durable audit events, independently enforced egress policy, TLS deployment, automated browser tests, metrics and backups. Keep scope authorization and local simulator restrictions intact. Never request or commit .env or secrets.
+
+## Latest Development Handover
+
+- Initial source code generated and prepared for GitHub.
+- Local Docker testing postponed due to Wsl/Service/E_ACCESSDENIED.
+- Generate dependency lockfiles before full integration testing.
+- Inspect GitHub Actions results and resolve outstanding failures.
+- Verify all four security modules in an authorized test environment.
+- Complete security hardening and performance benchmarking.
+- Do not assume the current implementation is production-ready.
+- Preserve the existing black, pink, yellow and white UI theme.
+- Continue development incrementally with tests and Git commits.
